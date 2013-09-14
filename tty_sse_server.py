@@ -4,6 +4,32 @@ import signal
 import pyuv
 import sys
 
+# This is a pyuv (event loop) implementation of a server that listens
+# with no blocking to tty stdin (e.g. a serial port) and sends the read data
+# to browsers that connect via TCP using Server Side Events (EventSource)
+#
+# Usage example:
+#     python tty_sse_server.py < /dev/tty.Bluetooth-Serial
+# 
+# Will listen to tty.Bluetooth-Serial and send input to browsers that connected
+# via EventSource
+#
+#
+# On the client side the only code needed is EventSource. You can try this in 
+# the browser console:
+#
+# var eventSource = new EventSource('http://localhost:1234/')
+# eventSource.addEventListener('message', function(e){console.log(e.data);}, false);
+#
+# That will start printing the serial port input data
+# To close the connection:
+# 
+# eventSource.close()
+# 
+# Dependencies: pyuv. Install with:
+# sudo pip install pyuv
+
+
 def on_connection(server, error):
     client = pyuv.TCP(server.loop)
     server.accept(client)
@@ -68,11 +94,11 @@ server = pyuv.TCP(loop)
 server.bind(("0.0.0.0", 1234))
 server.listen(on_connection)
 
-signal_h = pyuv.Signal(loop)
-signal_h.start(signal_cb, signal.SIGINT)
-
 tty_stdin = pyuv.TTY(loop, sys.stdin.fileno(), True)
 tty_stdin.start_read(on_tty_read)
+
+signal_h = pyuv.Signal(loop)
+signal_h.start(signal_cb, signal.SIGINT)
 
 timer =  pyuv.Timer(loop)
 REPEAT_RATE = 1.0  # Float Secs
