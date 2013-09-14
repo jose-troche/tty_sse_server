@@ -10,7 +10,7 @@ import sys
 # to browsers that connect via TCP using Server Side Events (EventSource)
 #
 # Usage example:
-#     python tty_sse_server.py < /dev/tty.Bluetooth-Serial
+#     python tty_sse_server.py < /dev/tty.Bluetooth-SerialPort
 # 
 # Will listen to tty.Bluetooth-Serial and send input to browsers that connected
 # via EventSource
