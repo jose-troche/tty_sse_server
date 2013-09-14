@@ -38,10 +38,6 @@ def on_connection(server, error):
     client.write(get_response('Init'))
     print("+++ TCP client accepted. # of clients %d" % len(clients))
 
-def on_timeout(timer_handle):
-    pass
-    #send_response_to_clients()
-
 def send_response_to_clients(data=None):
     for client in clients:
         client.write(get_response(data))
@@ -83,26 +79,26 @@ def shutdown():
     if not tty_stdin.closed:
         tty_stdin.close()
     server.close()
-    timer.close()
     signal_h.close()
     
 
 loop = pyuv.Loop.default_loop()
+
+# The list of TCP clients connected to server
 clients = []
 
+# TCP listener bound to any IP assigned to this machine and por 1234
 server = pyuv.TCP(loop)
 server.bind(("0.0.0.0", 1234))
 server.listen(on_connection)
 
+# TTY standard input listener
 tty_stdin = pyuv.TTY(loop, sys.stdin.fileno(), True)
 tty_stdin.start_read(on_tty_read)
 
+# KILL signal handler
 signal_h = pyuv.Signal(loop)
 signal_h.start(signal_cb, signal.SIGINT)
-
-timer =  pyuv.Timer(loop)
-REPEAT_RATE = 1.0  # Float Secs
-timer.start(on_timeout, 0, REPEAT_RATE)
 
 (ip, port) = server.getsockname()
 print ("Serving on %s:%s " % (ip, port) )
